@@ -4,7 +4,7 @@
 	MSR指令:对状态寄存器CPSR和SPSR进行写操作。与MRS配合使用，可以实现对CPSR或SPSR寄存器的读-修改-写操作，
 			可以切换处理器模式、或者允许/禁止IRQ/FIQ中断等。
 			(CPSR: current program status register, SPSR: saved program status register)
-eg: s3c2440 register organization in ARM state
+eg: s3c2440 r_o in ARM state
 ![](./arm_state.PNG)<br>
 eg: s3c2440的psr format
 ![](./psr_format.PNG)<br>
