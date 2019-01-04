@@ -5,7 +5,7 @@
 			可以切换处理器模式、或者允许/禁止IRQ/FIQ中断等。
 			(CPSR: current program status register, SPSR: saved program status register)
 eg: s3c2440 register organization in ARM state
-![](./r_o in arm_state.PNG)<br>
+![](./arm_state.PNG)<br>
 eg: s3c2440的psr format
 ![](./psr_format.PNG)<br>
 eg: s3c2440 mode bit set
