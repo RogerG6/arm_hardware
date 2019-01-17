@@ -1,0 +1,7 @@
+Q1: why nand flash 的LDATA线接到nor/sdram/dm9000上？？？
+A1：
+
+Q2：page = addr / 2048
+    col  = addr & (2048 - 1)  ???
+A2：eg: addr & 0b111,1111,1111 = addr的低11位的值
+
