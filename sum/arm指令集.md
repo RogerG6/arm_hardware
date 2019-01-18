@@ -184,9 +184,11 @@
         涵义：Result = Rn ^ shift_operand, 根据Result更新CPSR相应条件位，则后面的指令就能根据CPSR状态执行了
       
         用途：1. 比较2个数是否相等，该操作不影响CPSR的V_flag, C_flag
-              2. 比较2个数符号是否相同，该操作执行后，CPSR中N_flag为2个数符号位异或结果
+             2. 比较2个数符号是否相同，该操作执行后，CPSR中N_flag为2个数符号位异或结果
 
   # 3. 乘法指令
+
+  
 
 * mul
 
@@ -250,7 +252,7 @@
 
 * mrs 
 
-  ![](https://raw.githubusercontent.com/RogerG6/arm_hd/master/sum/pic/7.PNG)
+  ![](pic/7.PNG)
 
         语法：mrs <cond> Rd, cpsr
              mrs <cond> Rd, spsr
@@ -262,7 +264,7 @@
 
 * msr 
 
-  ![](https://raw.githubusercontent.com/RogerG6/arm_hd/master/sum/pic/9.PNG)
+  ![](pic/9.PNG)
 
         语法： msr<cond> cpsr_<field>, Rm
               msr<cond> cpsr_<field>, #immediate
