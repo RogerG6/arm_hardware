@@ -1,0 +1,13 @@
+Q1：p32-> Supports external wait signals to expand the bus cycle.
+	How to expand the bus cycle?
+	
+Q2: p33-> In UART-> Supports IrDA 1.0
+	What's IrDA 1.0?
+
+
+
+
+
+
+
+进度：p50
