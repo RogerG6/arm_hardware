@@ -127,13 +127,13 @@
 
   * 由于nand本身电气特性，nand会时不时出错，但是，nand出错不会整个block或page全错，而是几个bit出错，因此nand采用ECC来校验。ECC对1bit错误能检测并纠正，对1bit以上的错误能检测但无法纠正，对2bit以上的错误不保证能检测。Nand Flash的ECC，常见的算法有**海明码和BCH码**。
 
-  * **汉明(Simple Hamming)码**：ECC一般每256字节原始数据生成3字节ECC校验数据，这三字节共24比特分成两部分：6比特的列校验和16比特的行校验，多余的两个比特置1。校验数据格式如下：
+* **汉明(Simple Hamming)码**：ECC一般每256字节原始数据生成3字节ECC校验数据，这三字节共24比特分成两部分：6比特的列校验和16比特的行校验，多余的两个比特置1。校验数据格式如下
 
-  * ![](image/nand_ecc_format.png)
+  ![](image/nand_ecc_format.png)
 
   * 其中P1~P4，P8~P1024的生成原理如下：
 
-  * ![](image/nand_ecc_line_col.png)
+    ![](image/nand_ecc_line_col.png)
 
   * P1~P4，P8~P1024用数学表达式表示：
 
@@ -152,6 +152,8 @@
 
   * 纠正过程
 
-  
+    * 由P1-P4可以确定某个bit的一列
+
+    * 由p8-p1024可以确定某个byte的一行，最后确定的哪个数据的哪个bit
 
 
