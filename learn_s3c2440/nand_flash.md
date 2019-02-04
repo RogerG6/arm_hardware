@@ -2,7 +2,7 @@
 
 * nand flash(下文简称为nand)是一种非易失性存储元件，典型的如EPROM、EEPROM、NOR FLASH和NAND FLASH， 前两种已被淘汰。
 
-*   下表是nand和nor的差别:
+* 下表是nand和nor的差别:
 
 | 指标            | nand                    | nor（MLC）     |
 | ------------- | ----------------------- | ------------ |
@@ -20,8 +20,6 @@
 # 2. 结构
 
 ![](image/nand_flash原理图.png)
-
-
 
 * IO1~IO7：复用， 传输命令、地址、数据
 
@@ -47,16 +45,16 @@
 
 ```
 1 device = 2048 blocks
-         = 2048 blocks * (64 pages)
-         = 2048 blocks * (64 pages) * (2K + 64)B
-         = 256M + 8M
+         = 2048 blocks * (64 pages)
+         = 2048 blocks * (64 pages) * (2K + 64)B
+         = 256M + 8M
  其中：   256M是可用内存，8M是OOB（out of band）, 放置数据的校验值。用于ECC
-         OOB的具体用途：
-           1. 标记是否是坏快
+         OOB的具体用途：
+           1. 标记是否是坏快
 
-           2. 存储ECC数据
+           2. 存储ECC数据
 
-           3. 存储一些和文件系统相关的数据。如jffs2就会用到这些空间存储一些特定信息，而yaffs2文件系统，会在                                  oob中，存放很多和自己文件系统相关的信息。
+           3. 存储一些和文件系统相关的数据。如jffs2就会用到这些空间存储一些特定信息，而yaffs2文件系统，会在                                  oob中，存放很多和自己文件系统相关的信息。
 ```
 
 # 3. 操作
@@ -155,5 +153,44 @@
     * 由P1-P4可以确定某个bit的一列
 
     * 由p8-p1024可以确定某个byte的一行，最后确定的哪个数据的哪个bit
+
+# 5. s3c2440 ECC具体操作
+
+* 在对main area或spare area读写之前，通过操作MainECCLock(NFCONT bit 5) and SpareECCLock(NFCONT bit 6)，解锁main area或spare area
+
+* 在进行读写操作时，生成的校验码会自动写入NFMECC0/1或NFSECC
+
+* 完成以上操作后，可以通过读取NFESTAT的相应位进行判断是否有错误
+
+# 6. s3c2440 nand lock功能
+
+* 功能：在设定的地址区间内，即unlocked area，可以进行读、写、擦除操作。在此区间外，为locked area，只能进行读操作
+
+* 代码实现：
+
+```c
+/* 设置nand flash locked area 大小 */
+void do_set_lock_area(void)
+{
+	/* lock area enable，将NFCONT寄存器的bit 12设为1，即开启可修改始末地址功能 */
+
+	NFCONT |= (1 << 12);
+	
+	unsigned int start, end;
+	
+	puts("Enter the locked area start address: ");
+    start = get_uint();
+    start /= 2048;
+    NFSBLK = (start & 0xff) | (start & 0xff00) | (start & 0xff0000);   /* 发送地址和erase操作一样 */
+    
+	puts("Enter the locked area end address: ");
+    end = get_uint();
+    end /= 2048;
+    NFEBLK = (end & 0xff) | (end & 0xff00) | (end & 0xff0000);
+    
+    NFCONT |= (1 << 13);   /* lock tight, 该位使能后，之前设置的lock area就不可改变，reset后才可改变 */
+
+}
+```
 
 
