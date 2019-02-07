@@ -8,40 +8,48 @@
 
   * FIQ (fiq)：快中断模式 
 
-    *     1. FIQ模式下, 相比于其它异常模式有更多的专用寄存器, 因此只需保存少量寄存器, 
-             减少了上下文的切换时间
-          2. 当nFIQ输入低电平时, 产生FIQ. nFIQ信号只依赖于ISYNC信号, 不管是同步还是异步转换.
-             当ISYNC为低电平信号时, nFIQ和nIRQ处于异步模式, 并且在中断影响处理器流之前发生同步
-             的周期延迟。其中, nFIQ, nIRQ, ISYNC引脚存在于ARM920T CPU core 内部. (这段话
-             目前没有理解, 可能是硬件上的事)
-          3. FIQ 可能通过设置CPSR中的F位开关(usr mode下无法设置), 如果为0, 即enable，程序会
-             在每条指令执行完后, 检查fiq同步器的是否有低电平信号
+    ```
+    1. FIQ模式下, 相比于其它异常模式有更多的专用寄存器, 因此只需保存少量寄存器,
+        减少了上下文的切换时间
+    2. 当nFIQ输入低电平时, 产生FIQ. nFIQ信号只依赖于ISYNC信号, 不管是同步还是异步转换.
+       当ISYNC为低电平信号时, nFIQ和nIRQ处于异步模式, 并且在中断影响处理器流之前发生同步
+       的周期延迟。其中, nFIQ, nIRQ, ISYNC引脚存在于ARM920T CPU core 内部. (这段话
+       目前没有理解, 可能是硬件上的事)
+    3. FIQ 可能通过设置CPSR中的F位开关(usr mode下无法设置), 如果为0, 即enable，程序会
+       在每条指令执行完后, 检查fiq同步器的是否有低电平信号
+    ```
 
   * IRQ  (irq)：一般的中断模式
 
-    *     1. IRQ由nIRQ为低电平时被触发, 优先级低于FIQ, 当FIQ发生时被屏蔽, 能在任何prevlige 
-             mode下disable
+    ```
+    1. IRQ由nIRQ为低电平时被触发, 优先级低于FIQ, 当FIQ发生时被屏蔽, 能在任何prevlige
+        mode下disable
+    ```
 
   * Supervisor (svc)：操作系统的保护模式
 
   * Abort mode (abt)：数据或指令预取中止
 
-    *     1. 中止异常表明当前内在访问无法完成, 它可以由外部信号输入, 当处于内在访问周期时,
-             CPU检查中止异常
-          2. Abort机制主要用于有虚拟内存的机子上, 在这样的机子上, 系统可以产生任意的地址,
-             当某个地址的data不可用时, MMU会发出Abort信号, 然后Abort handler必须找出
-             问题所在, 并恢复它,并且重试被中止的指令.而应用程序不必管内存量的多少, 也不必
-             管其状态是否会影响中止.
-          3. 有2种:
-              1. Prefetch Abort: occurs during an instruction prefetch.
-              2. Data Abort    : occurs during a data access.
+    ```
+    1. 中止异常表明当前内在访问无法完成, 它可以由外部信号输入, 当处于内在访问周期时,
+     CPU检查中止异常
+    2. Abort机制主要用于有虚拟内存的机子上, 在这样的机子上, 系统可以产生任意的地址,
+     当某个地址的data不可用时, MMU会发出Abort信号, 然后Abort handler必须找出
+     问题所在, 并恢复它,并且重试被中止的指令.而应用程序不必管内存量的多少, 也不必
+     管其状态是否会影响中止.
+    3. 有2种:
+     1. Prefetch Abort: occurs during an instruction prefetch.
+     2. Data Abort : occurs during a data access.
+    ```
 
   * System (sys)：系统模式，和usr共用相同的寄存器，但是该状态能访问更多的资源
 
   * Undefined (und)：未定义指令模式
 
-    *     1. 当cpu遇到不能识别的指令时, 就会触发und. 
-          2. 该机制可以用来通过软件仿真来扩展ARM 或 THUMB指令
+    ```
+    1. 当cpu遇到不能识别的指令时, 就会触发und.
+     2. 该机制可以用来通过软件仿真来扩展ARM 或 THUMB指令
+    ```
 
 ### 1.2 arm / thumb指令
 
@@ -96,23 +104,25 @@
 
 * 异常的处理过程
 
-  *     1. 一种异常发生
-        2. 硬件上做的事:
-                1. 自动将下一条指令的地址保存在LR中, 无论是ARM 或 THUMB
-                2. 将当前模式下的CPSR保存到相应模式下的SPSR
-                3. 改变当前模式下的CPSR的mode位, 使cpu进入相应模式
-                4. 让PC跳到相应的异常向量表中执行指令
-                note: 还能通过禁止I位, 防止异常嵌套
-        3. 软件上做的事：
-                1. 保存现场
-                        通用寄存器, LR入栈. 其中LR入栈前, 减去相应的offset, 再入栈
-                2. 设置该模式下的栈指针(每个模式下有自己的栈指针reg)
-                3. 调用相应的ESR (exception service routine)
-                4. 恢复现场
-                        通用寄存器出栈, LR 赋给 PC, 
-                        将SPSR复制到CPSR中, 返回之前的模式
-                        如果之前disable I位, 再enable I位
-                        最后返回进入异常前的地址执行            
+  ```
+  1. 一种异常发生
+  2. 硬件上做的事:
+       1. 自动将下一条指令的地址保存在LR中, 无论是ARM 或 THUMB
+       2. 将当前模式下的CPSR保存到相应模式下的SPSR
+       3. 改变当前模式下的CPSR的mode位, 使cpu进入相应模式
+       4. 让PC跳到相应的异常向量表中执行指令
+       note: 还能通过禁止I位, 防止异常嵌套
+  3. 软件上做的事：
+       1. 保存现场
+               通用寄存器, LR入栈. 其中LR入栈前, 减去相应的offset, 再入栈
+       2. 设置该模式下的栈指针(每个模式下有自己的栈指针reg)
+       3. 调用相应的ESR (exception service routine)
+       4. 恢复现场
+               通用寄存器出栈, LR 赋给 PC,
+               将SPSR复制到CPSR中, 返回之前的模式
+               如果之前disable I位, 再enable I位
+               最后返回进入异常前的地址执行
+  ```
 
 * 异常代码实现
 
