@@ -8,20 +8,30 @@
 
   * FIQ (fiq)：快中断模式 
 
-    *     1. FIQ模式下, 相比于其它异常模式有更多的专用寄存器, 因此只需保存少量寄存器, 减少了上下文         的切换时间
-          2. 当nFIQ输入低电平时, 产生FIQ. nFIQ信号只依赖于ISYNC信号, 不管是同步还是异步转换. 当      ISYNC为低电平信号时, nFIQ和nIRQ处于异步模式, 并且在中断影响处理器流之前发生同步的周期    延迟。其中, nFIQ, nIRQ, ISYNC引脚存在于ARM920T CPU core 内部. (这段话目前没有理    解, 可能是硬件上的事)
-          3. FIQ 可能通过设置CPSR中的F位开关(usr mode下无法设置), 如果为0, 即enable，程序会在每       条指令执行完后, 检查fiq同步器的是否有低电平信号
+    *     1. FIQ模式下, 相比于其它异常模式有更多的专用寄存器, 因此只需保存少量寄存器, 
+             减少了上下文的切换时间
+          2. 当nFIQ输入低电平时, 产生FIQ. nFIQ信号只依赖于ISYNC信号, 不管是同步还是异步转换.
+             当ISYNC为低电平信号时, nFIQ和nIRQ处于异步模式, 并且在中断影响处理器流之前发生同步
+             的周期延迟。其中, nFIQ, nIRQ, ISYNC引脚存在于ARM920T CPU core 内部. (这段话
+             目前没有理解, 可能是硬件上的事)
+          3. FIQ 可能通过设置CPSR中的F位开关(usr mode下无法设置), 如果为0, 即enable，程序会
+             在每条指令执行完后, 检查fiq同步器的是否有低电平信号
 
   * IRQ  (irq)：一般的中断模式
 
-    *     1. IRQ由nIRQ为低电平时被触发, 优先级低于FIQ, 当FIQ发生时被屏蔽, 能在任何prevlige mode     下disable
+    *     1. IRQ由nIRQ为低电平时被触发, 优先级低于FIQ, 当FIQ发生时被屏蔽, 能在任何prevlige 
+             mode下disable
 
   * Supervisor (svc)：操作系统的保护模式
 
   * Abort mode (abt)：数据或指令预取中止
 
-    *     1. 中止异常表明当前内在访问无法完成, 它可以由外部信号输入, 当处于内在访问周期时, CPU检查    中止异常
-          2. Abort机制主要用于有虚拟内存的机子上, 在这样的机子上, 系统可以产生任意的地址, 当某个地      址的data不可用时, MMU会发出Abort信号, 然后Abort handler必须找出问题所在, 并恢复它,      并且重试被中止的指令.而应用程序不必管内存量的多少, 也不必管其状态是否会影响中止.
+    *     1. 中止异常表明当前内在访问无法完成, 它可以由外部信号输入, 当处于内在访问周期时,
+             CPU检查中止异常
+          2. Abort机制主要用于有虚拟内存的机子上, 在这样的机子上, 系统可以产生任意的地址,
+             当某个地址的data不可用时, MMU会发出Abort信号, 然后Abort handler必须找出
+             问题所在, 并恢复它,并且重试被中止的指令.而应用程序不必管内存量的多少, 也不必
+             管其状态是否会影响中止.
           3. 有2种:
               1. Prefetch Abort: occurs during an instruction prefetch.
               2. Data Abort    : occurs during a data access.
