@@ -2,7 +2,7 @@
 	How to expand the bus cycle?
 	
 Q2: p33-> In UART-> Supports IrDA 1.0
-	What's IrDA 1.0?
+	What's IrDA 1.0，红外功能如何实现?
 
 Q3：p50-> In SDRAM/SRAM, nBE[3:0] O Upper byte/lower byte enable (In case of 16-bit SRAM)
 	what does it mean?
@@ -43,4 +43,4 @@ Q7: p84-> INTERRUPT LATENCIES
 
 
 
-进度：DMA
+进度：int
