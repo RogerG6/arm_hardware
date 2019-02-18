@@ -12,7 +12,7 @@
 
 ![](image/clock_timing_power_on_reset.png)
 
-*  当电源启动，nRESET信号由低电平变成高电平时，PLL开始工作，等外部晶振频率稳定，此时（在进入pll lock time 前）FCLK = 晶振频率，过一段时间进入LOCK TIME，在此时间段内，clock control logic 会didsable FCLK直到输出的PLL稳定，enable FCLK从此FCLK ＝ MPLL
+* 当电源启动，nRESET信号由低电平变成高电平时，PLL开始工作，等外部晶振频率稳定，此时（在进入pll lock time 前）FCLK = 晶振频率，过一段时间进入LOCK TIME，在此时间段内，clock control logic 会didsable FCLK直到输出的PLL稳定，enable FCLK从此FCLK ＝ MPLL
 
 ### 1.2 代码实现
 
@@ -29,42 +29,40 @@
 * MPLL代码实现
 
 ```asm6502
-	/* 设置MPLL, FCLK : HCLK : PCLK = 400m : 100m : 50m */
-	/* LOCKTIME(0x4C000000) = 0xFFFFFFFF */
-	ldr r0, =0x4C000000
-	ldr r1, =0xFFFFFFFF
-	str r1, [r0]
+    /* 设置MPLL, FCLK : HCLK : PCLK = 400m : 100m : 50m */
+    /* LOCKTIME(0x4C000000) = 0xFFFFFFFF */
+    ldr r0, =0x4C000000
+    ldr r1, =0xFFFFFFFF
+    str r1, [r0]
 
-	/* CLKDIVN(0x4C000014) = 0X5, tFCLK:tHCLK:tPCLK = 1:4:8  */
-	ldr r0, =0x4C000014
-	ldr r1, =0x5
-	str r1, [r0]
+    /* CLKDIVN(0x4C000014) = 0X5, tFCLK:tHCLK:tPCLK = 1:4:8  */
+    ldr r0, =0x4C000014
+    ldr r1, =0x5
+    str r1, [r0]
 
-	/* 设置CPU工作于异步模式 */
-	mrc p15,0,r0,c1,c0,0
-	orr r0,r0,#0xc0000000   //R1_nF:OR:R1_iA
-	mcr p15,0,r0,c1,c0,0
+    /* 设置CPU工作于异步模式 */
+    mrc p15,0,r0,c1,c0,0
+    orr r0,r0,#0xc0000000   //R1_nF:OR:R1_iA
+    mcr p15,0,r0,c1,c0,0
 
-	/* 设置MPLLCON(0x4C000004) = (92<<12)|(1<<4)|(1<<0) 
-	 *  m = MDIV+8 = 92+8=100
-	 *  p = PDIV+2 = 1+2 = 3
-	 *  s = SDIV = 1
-	 *  FCLK = 2*m*Fin/(p*2^s) = 2*100*12/(3*2^1)=400M
-	 */
-	ldr r0, =0x4C000004
-	ldr r1, =(92<<12)|(1<<4)|(1<<0)
-	str r1, [r0]
+    /* 设置MPLLCON(0x4C000004) = (92<<12)|(1<<4)|(1<<0) 
+     *  m = MDIV+8 = 92+8=100
+     *  p = PDIV+2 = 1+2 = 3
+     *  s = SDIV = 1
+     *  FCLK = 2*m*Fin/(p*2^s) = 2*100*12/(3*2^1)=400M
+     */
+    ldr r0, =0x4C000004
+    ldr r1, =(92<<12)|(1<<4)|(1<<0)
+    str r1, [r0]
 
-	/* 一旦设置PLL, 就会锁定lock time直到PLL输出稳定
-	 * 然后CPU工作于新的频率FCLK
-	 */
+    /* 一旦设置PLL, 就会锁定lock time直到PLL输出稳定
+     * 然后CPU工作于新的频率FCLK
+     */
 ```
 
 # 2. power management
 
 c
-
-
 
 * s3c2440提供4种电源模式：
 

@@ -28,7 +28,7 @@ Q8：p265 -> What is the difference between demand mode and handshake mode ?
 
 Q7: p84-> INTERRUPT LATENCIES
 
-
+Q8：lcd_controller中，关于STN部分未阅读。
 
 
 
