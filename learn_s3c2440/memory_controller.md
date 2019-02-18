@@ -30,7 +30,7 @@
 
 SDRAM：同步动态随机存储器。一般用作内存
 
-1. > **原理图**
+1. **原理图**
 
 ![](image/sdram原理图.png)
 
@@ -48,10 +48,9 @@ SDRAM：同步动态随机存储器。一般用作内存
 
 SDRAM的存储结构如上图所示<br>1. 1个sdram被划分为4个逻辑BANK(L-BANK)<br>2. 每个L-BANK被row addr，col addr分成row * col个存储单元<br>
 
-2. > **操作**
+2. **操作**
 
    ![](image/mem_ctrl_sdram_timing.png)
-
    1. 片选信号有效，选中sdram
 
    2. sdram有4个L-BANK，通过地址中的2 bit来确定是哪个L-BANK
@@ -74,23 +73,23 @@ SDRAM的存储结构如上图所示<br>1. 1个sdram被划分为4个逻辑BANK(L-
 void sdram_init(void)
 {
 
-	/*配置BWSCON = 0x22000000,*/
-	BWSCON = 0x22000000;
-	
-	/*配置BANKCON6 = 0x18001, Trcd = 20ns, SCAN(column addr bit) = 9 bit*/
-	BANKCON6 = 0x18001;
-	BANKCON7 = 0x18001;
+    /*配置BWSCON = 0x22000000,*/
+    BWSCON = 0x22000000;
 
-	/*配置REFRESH ＝ 0x8404f5
-	  refresh enable, auto refresh, Trp = 20ns, Tsrc = 5CLk, Refresh count = 0x4F5*/
-	REFRESH = 0x8404f5;
-	 
-	/*配置BANKSIZE ＝ 0xb1, burst enable, SCKE_EN, SCLK_EN, BK76MAP = 64MB/64MB*/
-	BANKSIZE = 0xb1;
-	
-	/*配置MRSRB6 = 0x00000020， CL = 2 CLK*/
-	MRSRB6 = 0x20;
-	MRSRB7 = 0x20;
+    /*配置BANKCON6 = 0x18001, Trcd = 20ns, SCAN(column addr bit) = 9 bit*/
+    BANKCON6 = 0x18001;
+    BANKCON7 = 0x18001;
+
+    /*配置REFRESH ＝ 0x8404f5
+      refresh enable, auto refresh, Trp = 20ns, Tsrc = 5CLk, Refresh count = 0x4F5*/
+    REFRESH = 0x8404f5;
+
+    /*配置BANKSIZE ＝ 0xb1, burst enable, SCKE_EN, SCLK_EN, BK76MAP = 64MB/64MB*/
+    BANKSIZE = 0xb1;
+
+    /*配置MRSRB6 = 0x00000020， CL = 2 CLK*/
+    MRSRB6 = 0x20;
+    MRSRB7 = 0x20;
 
 }
 //=======================main.c==================================
@@ -98,22 +97,22 @@ void sdram_init(void)
 int main(void)
 {
     /* sdram的起始地址 */
-	volatile unsigned char * p = (volatile unsigned char *)0x30000000;
-	int i;
-	
-	//write byte
-	for (i = 0; i < 1000; i++)
-		p[i] = 0x50;
-	
-	//read byte
-	for (i = 0; i < 1000; i++)
-	{
-		if (p[i] != 0x50)
-			return 0;
-	}
-	test_led();
+    volatile unsigned char * p = (volatile unsigned char *)0x30000000;
+    int i;
 
-	return 0;
+    //write byte
+    for (i = 0; i < 1000; i++)
+        p[i] = 0x50;
+
+    //read byte
+    for (i = 0; i < 1000; i++)
+    {
+        if (p[i] != 0x50)
+            return 0;
+    }
+    test_led();
+
+    return 0;
 }
 ```
 
@@ -121,10 +120,68 @@ int main(void)
 
 ### 4.1 原理
 
-1. 原理图
+1. **原理图**
 
 ![](image/mem_ctrl_nor.png)
 
 * 上图是nor flash 的原理图<br>——LnOE：从CPU角度是读使能<br>——LnWE：从CPU角度是写使能<br>——nGCS0：片选信号引脚
 
 * 接口：地址线的接口和sdram一样。故在此不再赘述。
+
+* 存储结构
+
+  1个nor flash有多个regions<br>1个regions   有多个sectors<br>每个sector    大小不一定相同
+
+2. **操作（16 bit 位宽为例）**
+
+   nor flash 接口是和内存一样的，但是它和内存不同：读操作和内存一样，给定一个地址，即可通过解引用指针获得数据；写操作不能随意写，必须向nor 发出一些指定的命令。
+
+   1. 读操作
+
+      1. 读ID
+
+         | nor 角度                       | s32440角度                     |
+         | ---------------------------- | ---------------------------- |
+         | 往addr = 555H 写入AAH           | 往addr = AAAH 写入AAH           |
+         | 往addr = 2AAH写55H             | 往addr = 554H写55H             |
+         | 往addr = 555H写90H             | 往addr = AAAH写90H             |
+         | 读addr = 0得到厂家ID: C2H         | 读addr = 0得到厂家ID: C2H         |
+         | 读addr = 1得到设备ID: 22DAH或225BH | 读addr = 2得到设备ID: 22DAH或225BH |
+         | 进入CFI状态   ：往addr = 55H写98H   | 进入CFI状态   ：往addr = AAH写98H   |
+         | 退出读ID状态 ：给任意地址写F0H           | 退出读ID状态: 给任意地址写F0H           |
+
+         其中进入CFI模式可以得到关于该芯片的数据（eg. 存储大小、sector数……），但是在该模式下，不能正常访问nor flash ，否则会出错
+
+      2. 读数据
+
+   2. 写操作
+
+      | nor 角度           | s32440角度          |
+      | ---------------- | ----------------- |
+      | 往addr = 555H写AAH | 往addr = AAAH写AAH  |
+      | 往addr = 2AAH写55H | 往addr = 554H写55H  |
+      | 往addr = 555H写A0H | 往addr = AAAH写A0H  |
+      | 往addr = PA写数据    | 往addr = 2 * PA写数据 |
+
+   3. 擦除操作(sector erase)
+
+      | nor 角度           | s32440角度         |
+      | ---------------- | ---------------- |
+      | 往addr = 555H写AAH | 往addr = AAAH写AAH |
+      | 往addr = 2AAH写55H | 往addr = 554H写55H |
+      | 往addr = 555H写80H | 往addr = AAAH写80H |
+      | 往addr = 555H写AAH | 往addr = AAAH写AAH |
+      | 往addr = 2AAH写55H | 往addr = 554H写55H |
+      | 往addr = 555H写30H | 往addr = AAAH写30H |
+
+# 4.2 实现
+
+* 步骤
+
+1. 初始化相关寄存器，设置好时序（eg. nor 访问周期……）
+
+2. 可以开始读写操作<br>读芯片的相关信息……<br>但需要注意的是，在写数据时必须保证目标区域是被擦除过的，否则写不进去，因为电平只能是从1变成0
+
+* 代码<br>见github/arm_hd/learn_s3c2440
+
+
