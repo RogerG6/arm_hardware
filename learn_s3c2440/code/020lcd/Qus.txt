@@ -1,3 +1,0 @@
-Q1：s3c2440 datasheet p413， 16BPP的data format 5:6:5, [31:16]=P1, [15:0]=P2, 
-       VD Pin Descriptions中，为什么感觉32位不能装下2个像素点？？？
-A1：
