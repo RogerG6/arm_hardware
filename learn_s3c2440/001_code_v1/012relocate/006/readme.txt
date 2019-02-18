@@ -1,0 +1,1 @@
+在lds中定义bss段的start & end, 清除bss段

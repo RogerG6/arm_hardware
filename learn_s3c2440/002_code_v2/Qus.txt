@@ -1,0 +1,3 @@
+Q1: 在003_dma中，为什么当服务模式设为single service时，没有输出hello world!!!
+	DMA中，1个原子操作具体是多大？
+	auto load有什么用
