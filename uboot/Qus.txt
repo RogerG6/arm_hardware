@@ -1,0 +1,64 @@
+
+1. 编写简易bootloader后，用其启动linux kernel
+
+Q1：my bootloader编写好后，编译、烧写进入nand后，出现以下问题：
+	Copy kernel from nand
+	0x1234ABCD
+	0xD9367876
+	Set boot params
+	Boot kernel
+	Uncompressing Linux.................................................................................................................................................................................................................................................................................................................
+
+	invalid compressed format (err=1)
+A1：在检查代码没问题后，我怀疑是uImage的问题，因此重新下载了uImage到nand
+	问题解决了，但是出现了Q2
+
+Q2：启动内核后，出现以下问题：
+	Freeing init memory: 140K
+	Warning: unable to open an initial console.
+	Failed to execute /linuxrc.  Attempting defaults...
+	Kernel panic - not syncing: No init found.  Try passing init= option to kernel.
+A2：出现该问题的原因是，根文件系统有问题，导致初始化失败，重新下载fs_qtopia.yaffs2到nand，问题就解决了，成功启动linux内核
+	如下：
+	starting pid 764, tty '': '/etc/init.d/rcS'
+	tsdev (compaq touchscreen emulation) is scheduled for removal.
+	See Documentation/feature-removal-schedule.txt for details.
+	xres = 240, yres = 320
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+2. 配置、编译linux kernel
+
+Q3：make s3c2410_defconfig时，出现如下错误：
+	Makefile:416:*** mixed implicit and normal rules: deprecated syntax
+	Makefile:1449:*** mixed implicit and normal rules: deprecated syntax
+A3：修改linux-2.6.22.6 顶层Makefile 416行:
+		config%config: scripts_basic outputmakefile FORCE
+		改为:
+		%config:scripts_basic outputmakefile FORCE
+	修改linux-2.6.22.6 顶层 Makefile 1449行:
+		/%/: prepare scripts FORCE
+		改为:
+		%/:prepare scripts FORCE
+
+Q4：执行完make s3c2410_defconfig后，执行make menuconfig时，出现如下错误：
+	make[1]: *** [menuconfig] Segmentation fault (core dumped) 
+	Makefile:417: recipe for target 'menuconfig' failed 
+	make: *** [menuconfig] Error 2
+A4：sudo apt-get install libncurses*
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+3. Linux内核启动流程分析
+
+Q5：linux-2.6.22.6\arch\arm\kernel\head-common.S中，__lookup_processor_type中：
+	adr r3, 3f	
+	这语句adr根据上下文的理解取的是3f的物理地址
+	但是，书上说adr是相对地址，相对当前PC的偏移值，那就应该是运行时的地址，即链接地址。
+	那就有矛盾了
+
+
+
+
+
+
+
+
