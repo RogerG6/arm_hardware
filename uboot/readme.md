@@ -208,7 +208,7 @@
 			mkyaffs2image first_fs first_fs.yaffs2		/* 生成镜像文件first_fs.yaffs2 */
 			将上述镜像文件烧写到开发板
 			
-	  3. 创建proc
+	  3. 创建proc（虚拟文件系统）
 			方法1：
 			/* 其实，rcS是一个脚本，当系统启动时，会执行它 */
 			mkdir proc    /* 在first_fs目录创建proc目录 */
@@ -220,7 +220,7 @@
  			 * mount -a会根据etc/fstab中的内容加载proc
 			 */
 			mkdir proc    /* 在first_fs目录创建proc目录 */
-			在inittab文件中加入：mount -a
+			在rcS文件中加入：mount -a
 			在etc/fstab文件中加入：proc  /proc  proc  defaults  0  0
 			
 	  4. 自动创建/dev目录下的设备文件
@@ -230,7 +230,7 @@
 				sysfs   /sys    sysfs   defaults        0       0
 				tmpfs   /dev    tmpfs   defaults        0       0
 			在/etc/init.d/rcS文件中加入：
-				mount -a
+				mount -a 
 				mkdir /dev/pts
 				mount -t devpts devpts /dev/pts
 				echo /sbin/mdev > /proc/sys/kernel/hotplug
@@ -269,12 +269,62 @@
 				这样，服务器端修改或创建的/work/first_fs(必须是此目录下的)，可以实时的同步到单板的/mnt目录中
 				
 			2. 直接从NFS启动
-				1. 设置bootargs=noinitrd root=/dev/nfs nfsroot=192.168.0.103:/work/first_fs ip=192.168.0.99:192.168.0.103:192.168.0.1:255.255.255.0::eth0:off init=/linuxrc console=ttySAC0,115200
+				1. 服务器“允许”目标根文件目录可被挂接
+					在/etc/exports中加入：/work/first_fs  *(rw,sync,no_root_squash)
+					重启nfs: sudo /etc/init.d/nfs-kernel-server restart
+				2. 设置bootargs=noinitrd root=/dev/nfs nfsroot=192.168.0.103:/work/first_fs ip=192.168.0.99:192.168.0.103:192.168.0.1:255.255.255.0::eth0:off init=/linuxrc console=ttySAC0,115200
 				   参数设置在内核源码/documetation/nfsroot.txt中
-				2. 在开发板上启动内核，即可。
+				3. 在开发板上启动内核，即可。
 				   这样，我们在服务器上开发，自动同步，就可以在板子上做试验，方便！！！
 
 
+
+===========================================================================
+===========================================================================
+制作NFS文件系统总结：
+1. init本身，即busybox
+		tar xjf busybox-1.7.0.tar.bz2
+		make menuconfig		/* 配置busybox */
+		make				/* 编译 */
+		make CONFIG_PREFIX=<dest dir> install	/* 安装，切不可make install */
+2. /dev/console  /dev/null		/* 终端，如果没有终端则默认为/dev/null */
+		ls /dev/console /dev/null
+		mkdir first_fs			/* 创建根文件系统目录 */
+		cd first_fs
+		mkdir dev
+		mknod cosole c 5 1		/* 创建节点 */
+		mknod null c 1 3
+3. /etc/inittab					/* 配置文件 */
+		mkdir /first_fs/etc
+		在/etc目录下创建inittab，在其中写入
+			console::askfirst:-/bin/sh
+			::sysinit:/etc/init.d/rcS	/* 根据/etc/init.d/rcS这个脚本文件来初始化 */
+   /etc/init.d/rcS中加入：
+		mount -a
+		mkdir /dev/pts
+		mount -t devpts devpts /dev/pts
+		echo /sbin/mdev > /proc/sys/kernel/hotplug	/* 使用busybox中的mdev工具，它会自动创建/dev/设备节点 */
+		mdev -s
+   /etc/fstab中加入：
+		#device         mount-point             type    options         dump    fsck    order
+		proc            /proc                   proc    defaults        0               0
+		sysfs           /sys                    sysfs   defaults        0               0
+		tmpfs           /dev                    tmpfs   defaults        0               0
+
+
+4. 配置文件中指定的应用程序		/* 即其中的process */
+5. C库							/* 如printf, scanf, fopen等等函数 */
+		cd /work/tools/gcc-3.4.5-glibc-2.3.6/arm-linux/lib
+		mkdir /work/first_fs/lib
+		cp *.so* /work/first_fs/lib/ -d		/* 将库中的所有.so文件cpy到目标目录 */
+6. 从NFS启动
+		1. 服务器“允许”目标根文件目录可被挂接
+			在/etc/exports中加入：/work/first_fs  *(rw,sync,no_root_squash)
+			重启nfs: sudo /etc/init.d/nfs-kernel-server restart
+		2. 设置bootargs=noinitrd root=/dev/nfs nfsroot=192.168.0.103:/work/first_fs ip=192.168.0.99:192.168.0.103:192.168.0.1:255.255.255.0::eth0:off init=/linuxrc console=ttySAC0,115200
+		   参数设置在内核源码/documetation/nfsroot.txt中
+		3. 在开发板上启动内核，即可。
+		   这样，我们在服务器上开发，自动同步，就可以在板子上做试验，方便！！！
 
 
 
