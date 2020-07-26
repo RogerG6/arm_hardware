@@ -1,0 +1,3 @@
+004、在终端cat /proc/mymsg，能看到输出的myprintk的打印语句，但只能cat一次
+005、在终端cat /proc/mymsg，能看到输出的myprintk的打印语句，能cat多次
+     通过新建一个mylog_r_for_read变量来实现

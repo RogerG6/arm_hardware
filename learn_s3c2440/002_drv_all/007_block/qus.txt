@@ -1,0 +1,22 @@
+Q1：当开发板上没有mkdosfs时？
+A1：在网上下载dosfstools-3.0.16.tar.gz，上传到虚拟机
+    解压，make CC=arm-linux-gcc，将其中的mkdosfs拷贝到开发板上的/bin中，设置权限为chmod +x
+	即可使用
+	
+Q2：未分区之前能挂载到/tmp，但是分成2个分区（1是5个sectors, 2是27个sectors）后，无法挂载，信息如下：
+	# mount /dev/ramblock1 /tmp
+	attempt to access beyond end of device
+	ramblock1: rw=0, want=290, limit=288
+	isofs_fill_super: bread failed, dev=ramblock1, iso_blknum=72, block=144
+	attempt to access beyond end of device
+	ramblock1: rw=0, want=1252, limit=288
+	attempt to access beyond end of device
+	ramblock1: rw=0, want=1028, limit=288
+	UDF-fs: No partition found (1)
+	yaffs: dev is 266338305 name is "ramblock1"
+	yaffs: passed flags ""
+	yaffs: Attempting MTD mount on 254.1, "ramblock1"
+	yaffs: dev is 266338305 name is "ramblock1"
+	yaffs: passed flags ""
+	yaffs: Attempting MTD mount on 254.1, "ramblock1"
+	mount: mounting /dev/ramblock1 on /tmp failed: Invalid argument

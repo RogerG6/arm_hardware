@@ -1,0 +1,19 @@
+Char driver:
+1. 主设备号major
+2. file_operations
+		.owner
+		.open
+		.read
+		.write
+		.ioctl
+3. static int xxx_init(void)
+	{
+		chrdev_register
+	}
+4. static void xxx_exit(void)
+	{
+		chrdev_unregister
+	}
+	
+============================================
+Blk driver:
